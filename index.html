@@ -396,7 +396,7 @@ function verDetalhes(id){
     '<div class="detail-row"><span class="lbl">'+l+'</span><span class="val">'+v+'</span></div>'
   ).join('');
   const df=document.getElementById('detail-fotos');
-  df.innerHTML=r.fotos&&r.fotos.length?r.fotos.map((f,i)=>'<img src="'+f+'" onclick="openLightbox(''+f+'')" alt="foto '+(i+1)+'">').join(''):'';
+          df.innerHTML=r.fotos&&r.fotos.length?r.fotos.map((f,i)=>'<img src="'+f+'" onclick="openLightbox(\''+f+'\')" alt="foto '+(i+1)+'">').join(''):'';
   document.getElementById('overlay-detail').classList.add('open');
 }
 
