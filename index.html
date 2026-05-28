@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Campo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f4f0;color:#1a1a1a;min-height:100vh}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+#screen-login{align-items:center;justify-content:center;padding:2rem}
+.login-box{background:#fff;border-radius:16px;padding:2rem;max-width:360px;width:100%;border:0.5px solid #ddd}
+.login-box h1{font-size:20px;font-weight:500;margin-bottom:6px}
+.login-box p{font-size:13px;color:#666;margin-bottom:1.5rem}
+.login-box label{font-size:13px;color:#555;display:block;margin-bottom:4px}
+.login-box input{width:100%;padding:10px 12px;border:0.5px solid #ccc;border-radius:8px;font-size:15px;margin-bottom:1rem;background:#fff;color:#1a1a1a}
+.btn-login{width:100%;background:#1a1a1a;color:#fff;border:none;padding:11px;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer}
+.btn-login:hover{opacity:.85}
+.login-error{font-size:13px;color:#c0392b;margin-top:8px;text-align:center;min-height:18px}
+#screen-app{flex-direction:column}
+.topbar{background:#fff;border-bottom:0.5px solid #ddd;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:15px;font-weight:500}
+.topbar-user{font-size:13px;color:#666;display:flex;align-items:center;gap:8px}
+.btn-sair{background:none;border:0.5px solid #ccc;color:#555;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer}
+.btn-sair:hover{background:#f4f4f0}
+.tabs{display:flex;border-bottom:0.5px solid #ddd;background:#fff}
+.tab{flex:1;padding:11px 8px;font-size:14px;text-align:center;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent}
+.tab.active{color:#1a1a1a;border-bottom:2px solid #1a1a1a;font-weight:500}
+.content{flex:1;padding:1rem;max-width:720px;width:100%;margin:0 auto}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:520px){.form-grid{grid-template-columns:1fr}}
+.form-grid.full{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;color:#555}
+.field input,.field select,.field textarea{font-size:14px;padding:8px 10px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;width:100%}
+.field textarea{resize:vertical;min-height:72px}
+.foto-area{border:0.5px dashed #bbb;border-radius:12px;padding:1rem;text-align:center;cursor:pointer;background:#fafafa}
+.foto-area:hover{background:#f0f0ec}
+.foto-area input[type=file]{display:none}
+.foto-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.foto-preview-item{position:relative;width:72px;height:72px}
+.foto-preview-item img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:0.5px solid #ddd}
+.foto-del{position:absolute;top:-5px;right:-5px;background:#fde8e8;color:#c0392b;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer}
+.btn-primary{background:#1a1a1a;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:#fff;border:0.5px solid #ccc;color:#1a1a1a;padding:10px 18px;border-radius:8px;font-size:14px;cursor:pointer}
+.btn-secondary:hover{background:#f4f4f0}
+.btn-success{background:#fff;border:0.5px solid #27ae60;color:#27ae60;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-success:hover{background:#eafaf1}
+.btn-danger{background:#fff;border:0.5px solid #ddd;color:#c0392b;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+.btn-danger:hover{background:#fde8e8}
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:520px){.filters{grid-template-columns:1fr 1fr}}
+.filters input,.filters select{font-size:13px;padding:8px 10px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;width:100%}
+.toolbar{display:flex;justify-content:flex-end;margin-bottom:1rem}
+.record-list{display:flex;flex-direction:column;gap:10px}
+.record-card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:14px 16px}
+.record-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.record-title{font-size:15px;font-weight:500}
+.record-sub{font-size:13px;color:#666;margin-top:2px}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.badge-Pendente{background:#fef3cd;color:#856404}
+.badge-Em_andamento{background:#d1ecf1;color:#0c5460}
+.badge-Concluido{background:#d4edda;color:#155724}
+.record-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;padding-top:8px;border-top:0.5px solid #eee}
+.meta-item{font-size:12px;color:#888}
+.meta-item span{display:block;font-size:13px;color:#1a1a1a;margin-top:1px}
+.record-obs{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;font-size:13px;color:#666}
+.record-fotos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:8px;border-top:0.5px solid #eee}
+.record-fotos img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:0.5px solid #ddd;cursor:pointer}
+.record-actions{display:flex;justify-content:flex-end;margin-top:10px;gap:8px}
+.empty{text-align:center;padding:2.5rem 1rem;color:#888;font-size:14px}
+.loading{text-align:center;padding:2rem;color:#888;font-size:14px}
+.count-badge{background:#eee;color:#666;font-size:12px;padding:2px 8px;border-radius:12px;margin-left:6px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:50}
+.overlay.open{display:flex}
+.detail-box{background:#fff;border-radius:12px;padding:1.5rem;max-width:500px;width:92%;max-height:85vh;overflow-y:auto}
+.detail-box h3{font-size:16px;font-weight:500;margin-bottom:1rem}
+.detail-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid #eee;font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-row .lbl{color:#888;flex-shrink:0;margin-right:12px}
+.detail-row .val{color:#1a1a1a;text-align:right}
+.detail-fotos{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem}
+.detail-fotos img{width:90px;height:90px;object-fit:cover;border-radius:8px;border:0.5px solid #ddd;cursor:pointer}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);align-items:center;justify-content:center;z-index:100}
+.lightbox.open{display:flex}
+.lightbox img{max-width:92vw;max-height:88vh;border-radius:8px}
+.lightbox-close{position:fixed;top:16px;right:20px;color:#fff;font-size:32px;cursor:pointer;background:none;border:none;line-height:1}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <h1>Registro de Campo</h1>
+    <p>Digite sua matricula para acessar</p>
+    <label>Matricula</label>
+    <input id="input-matricula" type="text" placeholder="Ex: TEC001" autocomplete="off"
+      onkeydown="if(event.key==='Enter')entrar()">
+    <button class="btn-login" onclick="entrar()" id="btn-entrar">Entrar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div class="screen" id="screen-app">
+  <div class="topbar">
+    <span class="topbar-title">Registro de Campo</span>
+    <div class="topbar-user">
+      <span id="label-matricula"></span>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('cadastro')">+ Cadastrar</button>
+    <button class="tab" onclick="switchTab('consulta')">Consultar <span class="count-badge" id="total-count">0</span></button>
+  </div>
+  <div class="content">
+    <div id="sec-cadastro">
+      <div class="form-grid">
+        <div class="field"><label>Subestacao *</label><input id="f-sub" type="text" placeholder="Ex: SE Palmas Norte"></div>
+        <div class="field"><label>Local / Area *</label><input id="f-local" type="text" placeholder="Ex: Quadra 104 Norte"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Numero do medidor *</label><input id="f-medidor" type="text" placeholder="Ex: 00123456"></div>
+        <div class="field"><label>Tecnico responsavel</label><input id="f-tecnico" type="text" placeholder="Nome do tecnico"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Data</label><input id="f-data" type="date"></div>
+        <div class="field"><label>Hora</label><input id="f-hora" type="time"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Tipo de servico</label>
+          <select id="f-tipo">
+            <option value="">Selecione...</option>
+            <option>Instalacao de medidor</option>
+            <option>Substituicao de medidor</option>
+            <option>Diagnostico de falha</option>
+            <option>Atualizacao de firmware</option>
+            <option>Verificacao de comunicacao</option>
+            <option>Leitura de medicao</option>
+            <option>Manutencao preventiva</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="f-status">
+            <option value="Pendente">Pendente</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluido">Concluido</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field"><label>Observacoes / Descricao tecnica</label>
+          <textarea id="f-obs" placeholder="Descreva o servico, falhas encontradas, acoes tomadas..."></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>Fotos <span style="font-size:12px;color:#888">(opcional)</span></label>
+          <div class="foto-area" onclick="document.getElementById('f-fotos-input').click()">
+            <div style="font-size:22px">Foto</div>
+            <div style="font-size:13px;color:#888;margin-top:4px">Toque para adicionar fotos</div>
+            <input type="file" id="f-fotos-input" accept="image/*" multiple onchange="adicionarFotos(this)">
+          </div>
+          <div class="foto-preview" id="foto-preview"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;padding-bottom:2rem">
+        <button class="btn-primary" onclick="salvarRegistro()" id="btn-salvar">Salvar registro</button>
+        <button class="btn-secondary" onclick="limparForm()">Limpar</button>
+      </div>
+    </div>
+    <div id="sec-consulta" style="display:none">
+      <div class="filters">
+        <input type="text" id="f-fil-sub" placeholder="Subestacao..." oninput="renderLista()">
+        <input type="text" id="f-fil-local" placeholder="Local..." oninput="renderLista()">
+        <input type="text" id="f-fil-medidor" placeholder="Medidor..." oninput="renderLista()">
+      </div>
+      <div class="filters" style="grid-template-columns:1fr 1fr;margin-top:-4px">
+        <select id="f-fil-status" onchange="renderLista()">
+          <option value="">Todos os status</option>
+          <option>Pendente</option>
+          <option>Em andamento</option>
+          <option>Concluido</option>
+        </select>
+        <input type="date" id="f-fil-data" oninput="renderLista()">
+      </div>
+      <div class="toolbar">
+        <button class="btn-success" onclick="exportarCSV()">Exportar CSV</button>
+      </div>
+      <div class="record-list" id="record-list"><div class="loading">Carregando registros...</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-detail" onclick="closeOverlay(event,'overlay-detail')">
+  <div class="detail-box">
+    <h3 id="detail-title"></h3>
+    <div id="detail-rows"></div>
+    <div class="detail-fotos" id="detail-fotos"></div>
+    <div style="margin-top:1rem;text-align:right">
+      <button class="btn-secondary" onclick="document.getElementById('overlay-detail').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">x</button>
+  <img id="lightbox-img" src="" alt="Foto ampliada">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL='https://jcqyrhekvkruxxlnsfbt.supabase.co';
+const SUPA_KEY='sb_publishable_Za0bjIdaRCskBqhHBu8A6Q_RdJuN2Do';
+let matriculaAtual='';
+let todosRegistros=[];
+let fotosTemp=[];
+
+function h(url,opts={}){
+  return fetch(SUPA_URL+url,{
+    ...opts,
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})}
+  });
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+async function entrar(){
+  const mat=document.getElementById('input-matricula').value.trim().toUpperCase();
+  if(!mat){document.getElementById('login-error').textContent='Digite sua matricula.';return}
+  document.getElementById('btn-entrar').disabled=true;
+  document.getElementById('btn-entrar').textContent='Verificando...';
+  document.getElementById('login-error').textContent='';
+  try{
+    const r=await h('/rest/v1/matriculas?matricula=eq.'+encodeURIComponent(mat)+'&select=matricula');
+    const data=await r.json();
+    if(data&&data.length>0){
+      matriculaAtual=mat;
+      document.getElementById('screen-login').classList.remove('active');
+      document.getElementById('screen-app').classList.add('active');
+      document.getElementById('label-matricula').textContent=mat;
+      nowDefaults();
+      carregarRegistros();
+    } else {
+      document.getElementById('login-error').textContent='Matricula nao encontrada. Verifique e tente novamente.';
+    }
+  } catch(e){
+    document.getElementById('login-error').textContent='Erro de conexao. Tente novamente.';
+  }
+  document.getElementById('btn-entrar').disabled=false;
+  document.getElementById('btn-entrar').textContent='Entrar';
+}
+
+function sair(){
+  matriculaAtual='';
+  todosRegistros=[];
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('input-matricula').value='';
+  document.getElementById('login-error').textContent='';
+  limparForm();
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('sec-cadastro').style.display=tab==='cadastro'?'block':'none';
+  document.getElementById('sec-consulta').style.display=tab==='consulta'?'block':'none';
+  if(tab==='consulta')carregarRegistros();
+}
+
+function nowDate(){return new Date().toISOString().slice(0,10)}
+function nowTime(){return new Date().toTimeString().slice(0,5)}
+function nowDefaults(){
+  document.getElementById('f-data').value=nowDate();
+  document.getElementById('f-hora').value=nowTime();
+}
+
+function adicionarFotos(input){
+  Array.from(input.files).forEach(file=>{
+    const r=new FileReader();
+    r.onload=e=>{fotosTemp.push(e.target.result);renderFotoPreview()};
+    r.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+function renderFotoPreview(){
+  document.getElementById('foto-preview').innerHTML=fotosTemp.map((src,i)=>
+    '<div class="foto-preview-item"><img src="'+src+'" alt="foto '+(i+1)+'"><button class="foto-del" onclick="fotosTemp.splice('+i+',1);renderFotoPreview()">x</button></div>'
+  ).join('');
+}
+
+async function salvarRegistro(){
+  const sub=document.getElementById('f-sub').value.trim();
+  const local=document.getElementById('f-local').value.trim();
+  const medidor=document.getElementById('f-medidor').value.trim();
+  if(!sub||!local||!medidor){toast('Preencha subestacao, local e medidor.');return}
+  const btn=document.getElementById('btn-salvar');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const reg={
+    matricula:matriculaAtual,sub,local,medidor,
+    tecnico:document.getElementById('f-tecnico').value.trim()||null,
+    data:document.getElementById('f-data').value||null,
+    hora:document.getElementById('f-hora').value||null,
+    tipo:document.getElementById('f-tipo').value||null,
+    status:document.getElementById('f-status').value,
+    obs:document.getElementById('f-obs').value.trim()||null,
+    fotos:fotosTemp.length?fotosTemp:null
+  };
+  try{
+    const r=await h('/rest/v1/registros',{method:'POST',body:JSON.stringify(reg)});
+    if(r.ok){toast('Registro salvo!');limparForm();}
+    else{const e=await r.json();toast('Erro: '+(e.message||'tente novamente'));}
+  } catch(e){toast('Erro de conexao.');}
+  btn.disabled=false;btn.textContent='Salvar registro';
+}
+
+function limparForm(){
+  ['f-sub','f-local','f-medidor','f-tecnico','f-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-tipo').value='';
+  document.getElementById('f-status').value='Pendente';
+  nowDefaults();
+  fotosTemp=[];renderFotoPreview();
+}
+
+async function carregarRegistros(){
+  document.getElementById('record-list').innerHTML='<div class="loading">Carregando...</div>';
+  try{
+    const r=await h('/rest/v1/registros?select=*&order=criado_em.desc');
+    todosRegistros=await r.json();
+    document.getElementById('total-count').textContent=todosRegistros.length;
+    renderLista();
+  } catch(e){
+    document.getElementById('record-list').innerHTML='<div class="empty">Erro ao carregar registros.</div>';
+  }
+}
+
+function renderLista(){
+  const fSub=document.getElementById('f-fil-sub').value.toLowerCase();
+  const fLocal=document.getElementById('f-fil-local').value.toLowerCase();
+  const fMed=document.getElementById('f-fil-medidor').value.toLowerCase();
+  const fStatus=document.getElementById('f-fil-status').value;
+  const fData=document.getElementById('f-fil-data').value;
+  const lista=todosRegistros.filter(r=>
+    (!fSub||r.sub.toLowerCase().includes(fSub))&&
+    (!fLocal||r.local.toLowerCase().includes(fLocal))&&
+    (!fMed||r.medidor.toLowerCase().includes(fMed))&&
+    (!fStatus||r.status===fStatus)&&
+    (!fData||r.data===fData)
+  );
+  const cont=document.getElementById('record-list');
+  if(!lista.length){cont.innerHTML='<div class="empty">Nenhum registro encontrado.</div>';return}
+  const badgeClass=s=>s==='Pendente'?'Pendente':s==='Em andamento'?'Em_andamento':'Concluido';
+  cont.innerHTML=lista.map(r=>
+    '<div class="record-card">'+
+    '<div class="record-header"><div>'+
+    '<div class="record-title">'+r.sub+'</div>'+
+    '<div class="record-sub">'+r.local+'</div>'+
+    '</div><span class="badge badge-'+badgeClass(r.status)+'">'+r.status+'</span></div>'+
+    '<div class="record-meta">'+
+    '<div class="meta-item">Medidor<span>'+r.medidor+'</span></div>'+
+    '<div class="meta-item">Data<span>'+(r.data?r.data.split('-').reverse().join('/'):'--')+'</span></div>'+
+    '<div class="meta-item">Hora<span>'+(r.hora||'--')+'</span></div>'+
+    '</div>'+
+    (r.tecnico||r.tipo?'<div class="record-meta" style="grid-template-columns:1fr 1fr"><div class="meta-item">Tecnico<span>'+(r.tecnico||'--')+'</span></div><div class="meta-item">Servico<span>'+(r.tipo||'--')+'</span></div></div>':'')+ 
+    (r.obs?'<div class="record-obs">'+(r.obs.length>100?r.obs.slice(0,100)+'...':r.obs)+'</div>':'')+
+    '<div class="record-actions">'+
+    '<button class="btn-secondary" style="font-size:13px;padding:6px 12px" onclick="verDetalhes('+r.id+')">Ver</button>'+
+    '<button class="btn-danger" onclick="excluir('+r.id+')">Excluir</button>'+
+    '</div></div>'
+  ).join('');
+}
+
+function verDetalhes(id){
+  const r=todosRegistros.find(x=>x.id===id);if(!r)return;
+  document.getElementById('detail-title').textContent=r.sub;
+  const campos=[
+    ['Subestacao',r.sub],['Local',r.local],['Medidor',r.medidor],
+    ['Matricula',r.matricula||'--'],['Tecnico',r.tecnico||'--'],
+    ['Data',r.data?r.data.split('-').reverse().join('/'):'-'],['Hora',r.hora||'--'],
+    ['Tipo de servico',r.tipo||'--'],['Status',r.status],['Observacoes',r.obs||'--']
+  ];
+  document.getElementById('detail-rows').innerHTML=campos.map(([l,v])=>
+    '<div class="detail-row"><span class="lbl">'+l+'</span><span class="val">'+v+'</span></div>'
+  ).join('');
+  const df=document.getElementById('detail-fotos');
+  df.innerHTML=r.fotos&&r.fotos.length?r.fotos.map((f,i)=>'<img src="'+f+'" onclick="openLightbox(''+f+'')" alt="foto '+(i+1)+'">').join(''):'';
+  document.getElementById('overlay-detail').classList.add('open');
+}
+
+function closeOverlay(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('open')}
+function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open')}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open')}
+
+async function excluir(id){
+  if(!confirm('Excluir este registro?'))return;
+  try{
+    const r=await h('/rest/v1/registros?id=eq.'+id,{method:'DELETE'});
+    if(r.ok){toast('Registro excluido.');todosRegistros=todosRegistros.filter(x=>x.id!==id);renderLista();document.getElementById('total-count').textContent=todosRegistros.length;}
+    else toast('Erro ao excluir.');
+  } catch(e){toast('Erro de conexao.');}
+}
+
+function exportarCSV(){
+  const fSub=document.getElementById('f-fil-sub').value.toLowerCase();
+  const fLocal=document.getElementById('f-fil-local').value.toLowerCase();
+  const fMed=document.getElementById('f-fil-medidor').value.toLowerCase();
+  const fStatus=document.getElementById('f-fil-status').value;
+  const fData=document.getElementById('f-fil-data').value;
+  const lista=todosRegistros.filter(r=>
+    (!fSub||r.sub.toLowerCase().includes(fSub))&&
+    (!fLocal||r.local.toLowerCase().includes(fLocal))&&
+    (!fMed||r.medidor.toLowerCase().includes(fMed))&&
+    (!fStatus||r.status===fStatus)&&
+    (!fData||r.data===fData)
+  );
+  if(!lista.length){toast('Nenhum registro para exportar.');return}
+  const esc=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+  const header=['Matricula','Subestacao','Local','Medidor','Tecnico','Data','Hora','Tipo de servico','Status','Observacoes','Qtd. fotos'];
+  const rows=lista.map(r=>[r.matricula,r.sub,r.local,r.medidor,r.tecnico,r.data?r.data.split('-').reverse().join('/'):'-',r.hora,r.tipo,r.status,r.obs,(r.fotos||[]).length].map(esc).join(';'));
+  const csv='\uFEFF'+[header.map(esc).join(';'),...rows].join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='registros_'+nowDate()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast(lista.length+' registro(s) exportado(s)!');
+}
+</script>
+</body>
+</html>
